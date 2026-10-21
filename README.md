@@ -13,6 +13,8 @@ python3 -m http.server 8000
 
 ### Qué incluye
 
+- **Versión 2 (visual):** sombreado tipo caricatura con contornos, luz dorada con brillo (bloom), cielo y nubes, tepuyes con cascadas, río animado, bosque con viento, pasto y flores, y personajes rehechos según las hojas de arte.
+
 - Selección de protagonista: **Ayra** (macana y escudo) o **Tairo** (hacha de obsidiana).
 - Un pedazo del valle en low poly: Pueblo de los Talladores, bosque de estatuas, río con cascada y el templo del Bosque de las Estatuas.
 - Combate contra los **Sombríos** (guerreros, bruto y arquero) con combo de tres golpes y rodada.
@@ -34,6 +36,10 @@ python3 -m http.server 8000
 | Retroceso del Eco | E | ECO |
 | Interactuar | F | ACCIÓN |
 | Pista de Kuí | H | KUÍ |
+
+## Modelos 3D propios
+
+El juego carga automáticamente `models/ayra.glb` o `models/tairo.glb` si existen (por ejemplo, generados con Meshy o Tripo a partir de las hojas de personaje). Si el GLB trae animaciones llamadas *idle*, *walk*, *run* o *attack*, se usan solas.
 
 ## Próximos pasos
 
