@@ -1,0 +1,45 @@
+# Los Guardianes de Piedra
+
+Aventura 3D de acción y acertijos en mundo abierto, ambientada en el **Valle de Ammá**, un mundo precolombino de fantasía inspirado en la cultura agustiniana del Alto Magdalena (Huila, Colombia). Título provisional.
+
+## Prototipo jugable
+
+`index.html` es un prototipo en navegador hecho con [Three.js](https://threejs.org/) (r128). No necesita instalación: abre el archivo en un navegador moderno o sírvelo con cualquier servidor estático.
+
+```bash
+python3 -m http.server 8000
+# luego abre http://localhost:8000
+```
+
+### Qué incluye
+
+- Selección de protagonista: **Ayra** (macana y escudo) o **Tairo** (hacha de obsidiana).
+- Un pedazo del valle en low poly: Pueblo de los Talladores, bosque de estatuas, río con cascada y el templo del Bosque de las Estatuas.
+- Combate contra los **Sombríos** (guerreros, bruto y arquero) con combo de tres golpes y rodada.
+- **Retroceso del Eco**: devuelve unos segundos en el tiempo y recupera la vida perdida.
+- Misión completa de la zona: hablar con Toruma, liberar el campamento, disipar la niebla de Moxa, resolver el acertijo de los tres discos y conseguir la Honda de piedra.
+- Kuí, el espíritu-colibrí, acompaña y da pistas. 12 gemas de sol para recoger.
+- Controles táctiles en celular.
+
+### Controles
+
+| Acción | Teclado y ratón | Celular |
+| --- | --- | --- |
+| Moverse | WASD / flechas | Joystick |
+| Correr | Shift | — |
+| Cámara | Ratón (clic para bloquear) | Arrastrar |
+| Atacar | Clic / J | ATACAR |
+| Saltar | Espacio | SALTAR |
+| Rodar | C | RODAR |
+| Retroceso del Eco | E | ECO |
+| Interactuar | F | ACCIÓN |
+| Pista de Kuí | H | KUÍ |
+
+## Próximos pasos
+
+- Interior del Templo 1 y combate contra Yarú, Guardián de la Tierra.
+- Versión final en Godot para PC, con opción a celular y VR.
+
+---
+
+© Oñate Salamanca Arquitectos S.A.S.
