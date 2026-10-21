@@ -13,6 +13,8 @@ python3 -m http.server 8000
 
 ### Qué incluye
 
+- **Versión 3:** personajes rehechos según sus hojas (pantalón ancho, vendas, sandalias, chal, pelo con volumen, pecas, arco y carcaj de Ayra, morral de Tairo), Sombríos con capa rasgada y runas, postes de piedra tallados con cercas a lo largo del camino, mercado en la plaza, terrazas de maíz y quinua, casas de dos pisos con balcón, puente de piedra en arco sobre el río y cabezas gigantes en los acantilados.
+- **Escudo:** mantén clic derecho o Q para cubrirte. Bloquea golpes y flechas de frente; si lo levantas justo antes del golpe, el enemigo queda aturdido (bloqueo perfecto).
 - **Versión 2 (visual):** sombreado tipo caricatura con contornos, luz dorada con brillo (bloom), cielo y nubes, tepuyes con cascadas, río animado, bosque con viento, pasto y flores, y personajes rehechos según las hojas de arte.
 
 - Selección de protagonista: **Ayra** (macana y escudo) o **Tairo** (hacha de obsidiana).
@@ -31,6 +33,7 @@ python3 -m http.server 8000
 | Correr | Shift | — |
 | Cámara | Ratón (clic para bloquear) | Arrastrar |
 | Atacar | Clic / J | ATACAR |
+| Cubrirse con el escudo (mantener) | Clic derecho / Q | ESCUDO |
 | Saltar | Espacio | SALTAR |
 | Rodar | C | RODAR |
 | Retroceso del Eco | E | ECO |
