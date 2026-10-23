@@ -25,6 +25,14 @@ python3 -m http.server 8000
 - Kuí, el espíritu-colibrí, acompaña y da pistas. 12 gemas de sol para recoger.
 - Controles táctiles en celular.
 
+### Controles en celular
+
+- **Joystick:** moverte. **Toca el suelo:** caminar hasta allá (rodea obstáculos).
+- **Toca la pantalla mientras usas el joystick:** saltar. **Desliza el dedo:** rodar hacia ese lado. **Arrastra:** mover la cámara.
+- **Toca lo que brilla** (personas, mural, discos, cofre) para interactuar; si está lejos, el personaje camina hasta allá y lo hace solo.
+- **Toca un enemigo:** atacarlo o acercarte. **Toca la barra del Eco:** retroceder el tiempo. **Toca a Kuí:** pedir una pista.
+- En pantalla solo quedan los botones **ATACAR** y **ESCUDO** (mantener).
+
 ### Controles
 
 | Acción | Teclado y ratón | Celular |

@@ -74,11 +74,22 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 #touch{position:fixed;inset:0;z-index:6;pointer-events:none}
 #stick{position:absolute;left:calc(26px + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));width:120px;height:120px;border-radius:50%;background:#16120e80;border:2px solid #d3a54a66;pointer-events:auto}
 #stick i{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:#efe3c8cc}
-#tbtns{position:absolute;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(26px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(3,58px);gap:10px;pointer-events:auto}
-#tbtns button{all:unset;width:58px;height:58px;border-radius:50%;background:#16120ecc;border:2px solid var(--gold-dim);color:var(--parch);font-size:11.5px;font-weight:700;text-align:center;letter-spacing:.04em}
-#tbtns button.big{background:#5a3a1ccc;border-color:var(--gold)}
-#tbtns button.eco{border-color:var(--eco)}
-#tbtns button.shield{grid-column:3;background:#3a2a1acc;border-color:var(--gold)}
+#tbtns{position:absolute;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));display:flex;align-items:flex-end;gap:14px;pointer-events:auto}
+#tbtns button{all:unset;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:70px;height:70px;border-radius:50%;background:#16120ecc;border:2px solid var(--gold-dim);color:var(--parch);font-size:10.5px;font-weight:700;letter-spacing:.06em;touch-action:none;-webkit-user-select:none;user-select:none}
+#tbtns button svg{width:26px;height:26px}
+#tbtns button.big{width:88px;height:88px;background:#5a3a1ccc;border-color:var(--gold)}
+#tbtns button.big svg{width:34px;height:34px}
+#tbtns button.shield{margin-bottom:46px;background:#2a2016cc;border-color:var(--gold)}
+#tbtns button.on{background:#d3a54acc;color:var(--ink);transform:scale(.94)}
+body.touch #ecoTap{pointer-events:auto;padding:8px 10px 8px 0;margin:-8px 0}
+body.touch #kui{pointer-events:auto}
+body.touch #ecoTap .bar{height:12px;width:150px}
+body.touch #kui{left:calc(170px + env(safe-area-inset-left,0px));max-width:min(360px,calc(100vw - 370px));min-width:200px}
+body.touch #obj{width:min(230px,40vw);padding:8px 10px}
+body.touch #obj ol{font-size:12.5px;gap:3px}
+body.touch #obj li:not(.now){display:none}
+#touchHelp{left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:#16120ee6;border:1px solid var(--gold-dim);border-radius:10px;padding:10px 14px;font-size:13.5px;line-height:1.45;width:min(330px,calc(100vw - 32px));transition:opacity .6s}
+#touchHelp b{color:var(--gold)}
 @media (max-width:700px){ .keys{display:none} }
 @media (prefers-reduced-motion:reduce){ #toast,#kui{transition:none} }
 </style>
@@ -87,7 +98,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 
 <div class="hud" id="stats" hidden>
   <div id="hearts" aria-label="Vida"></div>
-  <div class="meter"><span>Eco</span><div class="bar" id="ecoBar"><i></i></div></div>
+  <div class="meter" id="ecoTap"><span>Eco</span><div class="bar" id="ecoBar"><i></i></div></div>
   <div id="gems" aria-label="Gemas de sol"><svg width="14" height="16" viewBox="0 0 14 16"><path d="M7 0l7 6-7 10L0 6z" fill="#f2c14e" stroke="#8a5a14"/></svg><b id="gemN">0</b>/<span id="gemT">12</span></div>
 </div>
 <div class="hud" id="obj" hidden><h3>Bosque de las Estatuas</h3><ol id="objList"></ol></div>
@@ -101,6 +112,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
   <span><kbd>Clic der. / Q</kbd>Escudo</span><span><kbd>F</kbd>Interactuar</span>
   <span><kbd>H</kbd>Pista de Kuí</span>
 </div>
+<div class="hud" id="touchHelp" hidden><b>Controles táctiles</b><br>Joystick: moverte · Toca el suelo: caminar hasta allá<br>Toca la pantalla mientras usas el joystick: saltar<br>Desliza el dedo: rodar hacia ese lado · Arrastra: mover la cámara<br>Toca lo que brilla: interactuar · Toca la barra del Eco: retroceder el tiempo · Toca a Kuí: pista</div>
 <div class="hud" id="lockhint" hidden>Haz clic para mover la cámara con el ratón</div>
 <div class="hud" id="loading">CARGANDO EL VALLE…</div>
 <div class="hud" id="dialog" hidden><h4 id="dName"></h4><p id="dText"></p><div class="next">F, Espacio o clic para continuar</div></div>
@@ -108,8 +120,8 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 <div id="touch" hidden>
   <div id="stick"><i></i></div>
   <div id="tbtns">
-    <button data-k="eco" class="eco">ECO</button><button data-k="act">ACCIÓN</button><button data-k="hint">KUÍ</button>
-    <button data-k="roll">RODAR</button><button data-k="jump">SALTAR</button><button data-k="atk" class="big">ATACAR</button><button data-k="block" class="shield">ESCUDO</button>
+    <button data-k="block" class="shield" aria-label="Escudo (mantener)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg><span>ESCUDO</span></button>
+    <button data-k="atk" class="big" aria-label="Atacar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l3-3m-1 4l-3-3M8 16L19 5l1-1-1 3-11 11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>ATACAR</span></button>
   </div>
 </div>
 
@@ -167,7 +179,7 @@ const L=h=>new THREE.Color(h).convertSRGBToLinear();
 function hash(x,z){const s=Math.sin(x*127.1+z*311.7)*43758.5453;return s-Math.floor(s)}
 function vnoise(x,z){const xi=Math.floor(x),zi=Math.floor(z),xf=x-xi,zf=z-zi,u=xf*xf*(3-2*xf),v=zf*zf*(3-2*zf);return lerp(lerp(hash(xi,zi),hash(xi+1,zi),u),lerp(hash(xi,zi+1),hash(xi+1,zi+1),u),v)}
 const fbm=(x,z)=>vnoise(x,z)*0.5+vnoise(x*2.03+5.1,z*2.03)*0.25+vnoise(x*4.1,z*4.1+3.3)*0.125;
-const isTouch=matchMedia("(pointer: coarse)").matches;
+const isTouch=matchMedia("(pointer: coarse)").matches||/[?&]touch/.test(location.search);
 const Q=isTouch?{grass:22000,shadow:1024,px:1.25,flowers:900}:{grass:95000,shadow:2048,px:1.6,flowers:2600};
 
 // =====================================================================
@@ -980,33 +992,72 @@ document.addEventListener("pointerlockchange",()=>{locked=document.pointerLockEl
 const stick={id:null,x:0,y:0,cx:0,cy:0};let camTouch=null;
 if(isTouch){const st=$("stick"),knob=st.querySelector("i");
   const moveStick=e=>{let dx=e.clientX-stick.cx,dy=e.clientY-stick.cy;const d=Math.hypot(dx,dy),m=45;if(d>m){dx*=m/d;dy*=m/d}stick.x=dx/m;stick.y=dy/m;knob.style.transform=`translate(${dx}px,${dy}px)`};
-  st.addEventListener("pointerdown",e=>{stick.id=e.pointerId;const r=st.getBoundingClientRect();stick.cx=r.left+r.width/2;stick.cy=r.top+r.height/2;st.setPointerCapture(e.pointerId);moveStick(e)});
+  st.addEventListener("pointerdown",e=>{if(paused)return;stick.id=e.pointerId;const r=st.getBoundingClientRect();stick.cx=r.left+r.width/2;stick.cy=r.top+r.height/2;st.setPointerCapture(e.pointerId);moveStick(e);P.moveTarget=null});
   st.addEventListener("pointermove",e=>{if(e.pointerId===stick.id)moveStick(e)});const endStick=e=>{if(e.pointerId!==stick.id)return;stick.id=null;stick.x=stick.y=0;knob.style.transform=""};st.addEventListener("pointerup",endStick);st.addEventListener("pointercancel",endStick);
-  $("tbtns").addEventListener("pointerdown",e=>{const b=e.target.closest("button");if(!b||paused)return;e.preventDefault();const k=b.dataset.k;if(k==="block"){setBlock(true);const up=()=>{setBlock(false);removeEventListener("pointerup",up);removeEventListener("pointercancel",up)};addEventListener("pointerup",up);addEventListener("pointercancel",up);return}if(dlg){advance();return}if(k==="atk")attack();if(k==="jump")jump();if(k==="roll")roll();if(k==="eco")startRewind();if(k==="act")interact();if(k==="hint")hint()});
-  canvas.addEventListener("pointerdown",e=>{if(paused)return;if(dlg){advance();return}camTouch={id:e.pointerId,x:e.clientX,y:e.clientY}});
-  canvas.addEventListener("pointermove",e=>{if(!camTouch||e.pointerId!==camTouch.id)return;cam.yaw-=(e.clientX-camTouch.x)*0.006;cam.pitch=clamp(cam.pitch+(e.clientY-camTouch.y)*0.005,-0.15,1.15);camTouch.x=e.clientX;camTouch.y=e.clientY});
-  const endCam=e=>{if(camTouch&&e.pointerId===camTouch.id)camTouch=null};canvas.addEventListener("pointerup",endCam);canvas.addEventListener("pointercancel",endCam)}
+  // solo dos botones: atacar y escudo (mantener)
+  $("tbtns").addEventListener("pointerdown",e=>{const b=e.target.closest("button");if(!b||paused)return;e.preventDefault();const k=b.dataset.k;
+    if(k==="block"){setBlock(true);b.classList.add("on");const up=ev=>{if(ev.pointerId!==e.pointerId)return;setBlock(false);b.classList.remove("on");removeEventListener("pointerup",up);removeEventListener("pointercancel",up)};addEventListener("pointerup",up);addEventListener("pointercancel",up);return}
+    if(dlg){advance();return}if(k==="atk")attack()});
+  // la barra del Eco se toca para retroceder el tiempo
+  $("ecoTap").addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(!paused&&!dlg)startRewind()});
+  $("kui").addEventListener("pointerdown",e=>{e.preventDefault();if(!paused&&!dlg)hint()});
+  $("dialog").addEventListener("pointerdown",e=>{e.preventDefault();advance()});
+  // gestos sobre la pantalla: tocar, deslizar y arrastrar
+  const gest=new Map();
+  canvas.addEventListener("pointerdown",e=>{if(paused)return;if(dlg){advance();return}gest.set(e.pointerId,{x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:performance.now(),yaw0:cam.yaw,pitch0:cam.pitch,moved:0,withStick:stick.id!==null})});
+  canvas.addEventListener("pointermove",e=>{const g=gest.get(e.pointerId);if(!g)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;g.moved=Math.max(g.moved,Math.hypot(e.clientX-g.x0,e.clientY-g.y0));
+    if(g.moved>14){cam.yaw-=dx*0.006;cam.pitch=clamp(cam.pitch+dy*0.005,-0.15,1.15)}g.x=e.clientX;g.y=e.clientY});
+  const endG=e=>{const g=gest.get(e.pointerId);if(!g)return;gest.delete(e.pointerId);if(paused||dlg)return;
+    const dt=performance.now()-g.t0,dx=e.clientX-g.x0,dy=e.clientY-g.y0,dist=Math.hypot(dx,dy);
+    if(dist>45&&dt<320){cam.yaw=g.yaw0;cam.pitch=g.pitch0;swipeRoll(dx,dy);return}
+    if(dist<16&&dt<380)onTap(e.clientX,e.clientY,g.withStick||stick.id!==null)};
+  canvas.addEventListener("pointerup",endG);canvas.addEventListener("pointercancel",e=>gest.delete(e.pointerId))}
+function screenOf(v){const p=v.clone().project(camera);if(p.z>1)return null;const r=canvas.getBoundingClientRect();return{x:(p.x*0.5+0.5)*r.width+r.left,y:(-p.y*0.5+0.5)*r.height+r.top}}
+function groundAtScreen(sx,sy){const r=canvas.getBoundingClientRect();const ndc=new THREE.Vector2((sx-r.left)/r.width*2-1,-(sy-r.top)/r.height*2+1);const ray=new THREE.Raycaster();ray.setFromCamera(ndc,camera);
+  const o=ray.ray.origin,d=ray.ray.direction;let prev=0;for(let t=0.5;t<140;t+=0.4){const x=o.x+d.x*t,y=o.y+d.y*t,z=o.z+d.z*t;if(y<=groundH(x,z)){let a=prev,b=t;for(let k=0;k<8;k++){const m=(a+b)/2;const yy=o.y+d.y*m;if(yy<=groundH(o.x+d.x*m,o.z+d.z*m))b=m;else a=m}return new THREE.Vector3(o.x+d.x*b,0,o.z+d.z*b)}prev=t}return null}
+function swipeRoll(dx,dy){const fx=-Math.sin(cam.yaw),fz=-Math.cos(cam.yaw),rx=Math.cos(cam.yaw),rz=-Math.sin(cam.yaw);const l=Math.hypot(dx,dy)||1;const v=new THREE.Vector3(fx*(-dy/l)+rx*(dx/l),0,fz*(-dy/l)+rz*(dx/l));P.moveTarget=null;roll(v)}
+function onTap(sx,sy,withStick){
+  // 1) tocar a Kuí da una pista
+  if(kui){const k=screenOf(kui.position);if(k&&Math.hypot(k.x-sx,k.y-sy)<46){hint();return}}
+  // 2) tocar un objeto o persona interactiva
+  let best=null,bd=80;for(const it of interactables){if(it.when&&!it.when())continue;const p=it.pos();const wp=new THREE.Vector3(p.x,groundH(p.x,p.z)+(it.h||1.2),p.z);const s2=screenOf(wp);if(!s2)continue;const dd=Math.hypot(s2.x-sx,s2.y-sy);const far=Math.hypot(p.x-P.pos.x,p.z-P.pos.z);if(dd<bd&&far<40){bd=dd;best=it}}
+  if(best){const p=best.pos();if(Math.hypot(p.x-P.pos.x,p.z-P.pos.z)<best.r)best.act();else setMoveTarget(new THREE.Vector3(p.x,0,p.z),best);return}
+  // 3) caminando con el joystick, tocar la pantalla salta
+  if(withStick){jump();return}
+  // 4) tocar un enemigo cercano ataca
+  for(const e of enemies){if(!e.alive)continue;const s2=screenOf(e.g.position.clone().setY(e.g.position.y+1.2));if(!s2)continue;if(Math.hypot(s2.x-sx,s2.y-sy)<60){const d=e.g.position.distanceTo(P.pos);if(d<3.4){P.model.rotation.y=Math.atan2(e.g.position.x-P.pos.x,e.g.position.z-P.pos.z);attack()}else setMoveTarget(e.g.position.clone(),null,2.2);return}}
+  // 5) tocar el suelo: caminar hasta allá
+  const gp=groundAtScreen(sx,sy);if(!gp||gp.distanceTo(new THREE.Vector3(P.pos.x,0,P.pos.z))>70)return;
+  for(const it of interactables){if(it.when&&!it.when())continue;const p=it.pos();if(Math.hypot(p.x-gp.x,p.z-gp.z)<2.2){if(Math.hypot(p.x-P.pos.x,p.z-P.pos.z)<it.r)it.act();else setMoveTarget(new THREE.Vector3(p.x,0,p.z),it);return}}
+  setMoveTarget(gp)}
+const tapMark=(()=>{const g=new THREE.Group();const r=new THREE.Mesh(new THREE.RingGeometry(0.45,0.62,32),new THREE.MeshBasicMaterial({color:L("#ffd36b").multiplyScalar(2.5),transparent:true,depthWrite:false,side:THREE.DoubleSide}));r.rotation.x=-Math.PI/2;g.add(r);
+  const r2=new THREE.Mesh(new THREE.RingGeometry(0.12,0.2,24),r.material);r2.rotation.x=-Math.PI/2;g.add(r2);g.visible=false;scene.add(g);g.userData.t=0;return g})();
+function setMoveTarget(v,act,stop){P.moveTarget={x:v.x,z:v.z,act:act||null,stop:stop||(act?Math.max(0.8,act.r-0.8):0.5),best:1e9,stuck:0};tapMark.position.set(v.x,groundH(v.x,v.z)+0.06,v.z);tapMark.visible=!act;tapMark.userData.t=0}
+// brillo de lo que se puede tocar
+const hl=(()=>{const g=new THREE.Group();const ring=new THREE.Mesh(new THREE.RingGeometry(0.85,1.05,48),new THREE.MeshBasicMaterial({color:L("#ffe39a").multiplyScalar(3),transparent:true,opacity:0.8,depthWrite:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;g.add(ring);
+  const gem=new THREE.Mesh(new THREE.OctahedronGeometry(0.18,0),new THREE.MeshBasicMaterial({color:L("#ffe39a").multiplyScalar(4)}));gem.scale.y=1.5;g.add(gem);
+  const glow=new THREE.PointLight(L("#ffd36b"),0,6,2);g.add(glow);g.visible=false;scene.add(g);g.userData={ring,gem,glow};return g})();
 
 // =====================================================================
 //  acciones
 // =====================================================================
 function jump(){if(P.ground&&!P.dead&&!rewinding){P.vy=9.6;P.ground=false}}
-function roll(){if(P.roll>0||P.dead||rewinding||!P.ground)return;P.block=false;P.roll=0.45;const f=new THREE.Vector3(Math.sin(P.model.rotation.y),0,Math.cos(P.model.rotation.y));const mv=moveVec();P.rollDir.copy(mv.lengthSq()>0.01?mv:f).normalize()}
+function roll(dir){if(P.roll>0||P.dead||rewinding||!P.ground)return;P.block=false;P.roll=0.45;const f=new THREE.Vector3(Math.sin(P.model.rotation.y),0,Math.cos(P.model.rotation.y));const mv=moveVec();P.rollDir.copy(dir&&dir.lengthSq()>0.01?dir:mv.lengthSq()>0.01?mv:f).normalize()}
 function attack(){if(P.atk>0||P.dead||rewinding||dlg||P.block)return;P.combo=P.comboT>0?(P.combo+1)%3:0;P.atk=P.combo===2?0.42:0.3;P.hitDone=false;P.comboT=0.75;sfx("swing");const tgt=nearestEnemy(6);if(tgt)P.model.rotation.y=Math.atan2(tgt.g.position.x-P.pos.x,tgt.g.position.z-P.pos.z)}
 function nearestEnemy(r){let b=null,bd=r;for(const e of enemies){if(!e.alive)continue;const d=e.g.position.distanceTo(P.pos);if(d<bd){bd=d;b=e}}return b}
 let seenRewind=false;
 function startRewind(){if(rewinding||P.eco<1||hist.length<20||P.dead)return;rewinding=true;rwT=0;rwIdx=hist.length-1;P.eco=0;sfx("rewind");if(!seenRewind){seenRewind=true;say("¡El Eco devolvió el tiempo! Úsalo para salvarte de un golpe o de una caída.",5)}}
-function hint(){const c=curObj();const H={talk:"Toruma está junto a la estatua del pueblo. Sigue la luz dorada.",camp:"El campamento está al oeste, siguiendo el camino. Cúbrete con el escudo (clic derecho o Q), rueda con C y, si te va mal, usa el Eco con E.",door:"La puerta del templo tiene tres discos. Mira el mural de la izquierda: ahí está el orden de los antiguos.",chest:"La puerta está abierta. El cofre espera dentro del templo."};say(c?H[c.id]:"Ya tienes la honda. Explora el valle y busca las gemas de sol que faltan.",6)}
+function hint(){const c=curObj();const H={talk:"Toruma está junto a la estatua del pueblo. Sigue la luz dorada.",camp:isTouch?"El campamento está al oeste. Mantén el botón del escudo para cubrirte, desliza el dedo para rodar y, si te va mal, toca la barra del Eco.":"El campamento está al oeste, siguiendo el camino. Cúbrete con el escudo (clic derecho o Q), rueda con C y, si te va mal, usa el Eco con E.",door:isTouch?"La puerta tiene tres discos. Toca el mural de la izquierda para leerlo y luego toca cada disco para girarlo.":"La puerta del templo tiene tres discos. Mira el mural de la izquierda: ahí está el orden de los antiguos.",chest:"La puerta está abierta. El cofre espera dentro del templo."};say(c?H[c.id]:"Ya tienes la honda. Explora el valle y busca las gemas de sol que faltan.",6)}
 const interactables=[];
 function interact(){if(dlg||P.dead)return;const it=nearInteract();if(it)it.act()}
 function nearInteract(){let b=null,bd=1e9;for(const it of interactables){if(it.when&&!it.when())continue;const p=it.pos();const d=Math.hypot(p.x-P.pos.x,p.z-P.pos.z);if(d<it.r&&d<bd){bd=d;b=it}}return b}
 function setupInteractables(){
-  interactables.push({r:3.2,label:"Hablar con Toruma",pos:()=>elder.position,act:()=>{const n=CHAR[choice].name;
+  interactables.push({r:3.2,h:1.9,hr:0.9,label:"Hablar con Toruma",pos:()=>elder.position,act:()=>{const n=CHAR[choice].name;
     if(!done.talk)openDialog("TORUMA",[`${n}, la luz del taller se apagó anoche. Moxa vino con su eclipse y se la llevó.`,"El amuleto que encontraste en la tumba te eligió. Es un Eco de los antiguos: puede devolverte unos segundos en el tiempo.","Los Sombríos acampan en el camino al Bosque de las Estatuas. Su niebla cubre la puerta del templo.","Libera el campamento y abre el templo. Dentro hay algo que los Guardianes dejaron para ti."],()=>{done.talk=true;renderObj();toast("Objetivo nuevo","Libera el campamento de los Sombríos");say("¡Vamos! El campamento está al oeste. Sigue el camino de tierra.",5)});
     else openDialog("TORUMA",[done.chest?"La honda de piedra... Yarú, el Guardián de la Tierra, despertará cuando le rompas los ojos de sombra.":"Los antiguos escribían el orden de las cosas en los muros. Mira bien antes de tocar la piedra."])}});
-  interactables.push({r:4.2,label:"Leer el mural",pos:()=>({x:TEMPLE.x-8,z:-129.5}),when:()=>!done.door,act:()=>openDialog("MURAL",["Tres símbolos tallados: la serpiente, el sol y el colibrí. Debajo dice: «El orden de los antiguos»."])});
-  discs.forEach((d,i)=>interactables.push({r:1.7,label:`Girar el disco ${i+1}`,pos:()=>({x:d.x,z:d.z}),when:()=>!done.door,act:()=>{discVals[i]=(discVals[i]+1)%4;d.target+=Math.PI/2;sfx("stone");checkDiscs()}}));
-  interactables.push({r:2.8,label:"Abrir el cofre",pos:()=>({x:TEMPLE.x,z:-139.6}),when:()=>doorOpen&&!done.chest,act:openChest})}
+  interactables.push({r:4.2,h:5.2,hr:1.6,label:"Leer el mural",pos:()=>({x:TEMPLE.x-8,z:-129.5}),when:()=>!done.door,act:()=>openDialog("MURAL",["Tres símbolos tallados: la serpiente, el sol y el colibrí. Debajo dice: «El orden de los antiguos»."])});
+  discs.forEach((d,i)=>interactables.push({r:1.7,h:1.7,hr:0.8,label:`Girar el disco ${i+1}`,pos:()=>({x:d.x,z:d.z}),when:()=>!done.door,act:()=>{discVals[i]=(discVals[i]+1)%4;d.target+=Math.PI/2;sfx("stone");checkDiscs()}}));
+  interactables.push({r:2.8,h:1.0,hr:1.1,label:"Abrir el cofre",pos:()=>({x:TEMPLE.x,z:-139.6}),when:()=>doorOpen&&!done.chest,act:openChest})}
 let doorAnim=false;
 function checkDiscs(){if(discVals.every((v,i)=>v===SOLUTION[i])){done.door=true;renderObj();setTimeout(()=>{toast("La puerta se abre","Los discos encajan con el mural");sfx("open");shake=0.8;doorAnim=true;scene.userData.chamberLight.intensity=3},500)}}
 function openChest(){const c=scene.userData.chest;c.open=true;done.chest=true;renderObj();sfx("open");burst(new THREE.Vector3(TEMPLE.x,TH+1.4,-141),"#ffd36b",30,2.5,4,1.3,1,4);
@@ -1022,7 +1073,7 @@ function hurtPlayer(dmg,from,src){if(P.inv>0||P.roll>0||P.dead||rewinding)return
       if(!seenBlock){seenBlock=true;say("¡Bien cubierto! Si levantas el escudo justo antes del golpe, el enemigo queda aturdido.",5)}
       return true}}P.hp=Math.max(0,P.hp-dmg);P.inv=1.0;sfx("hurt");shake=0.35;hurtT=1;
   const v=P.pos.clone().sub(from).setY(0).normalize().multiplyScalar(9);P.kb.copy(v);P.vy=4;P.ground=false;burst(P.pos.clone().setY(P.pos.y+1.2),"#ff8a6a",8,3,2,0.5,1,2);
-  if(P.hp<=0){if(P.eco>=1){say("¡Rápido, usa el Eco con E!",2.5);setTimeout(()=>{if(P.hp<=0&&!rewinding)die()},900)}else die()}else if(P.hp<=2&&P.eco>=1)say("¡Cuidado! Si te va mal, retrocede el tiempo con E.",3.5)}
+  if(P.hp<=0){if(P.eco>=1){say(isTouch?"¡Rápido, toca la barra del Eco!":"¡Rápido, usa el Eco con E!",2.5);setTimeout(()=>{if(P.hp<=0&&!rewinding)die()},900)}else die()}else if(P.hp<=2&&P.eco>=1)say(isTouch?"¡Cuidado! Si te va mal, toca la barra del Eco para retroceder el tiempo.":"¡Cuidado! Si te va mal, retrocede el tiempo con E.",3.5)}
 function die(){if(P.dead)return;P.dead=true;setTimeout(()=>{paused=true;try{document.exitPointerLock()}catch(_){}$("dead").hidden=false;$("retry").focus()},900)}
 function respawn(){P.dead=false;P.hp=P.max;lastHP=-1;P.pos.set(VILLAGE.x+6,0,VILLAGE.z-10);P.pos.y=groundH(P.pos.x,P.pos.z);P.vy=0;P.kb.set(0,0,0);P.eco=1;hist.length=0;$("dead").hidden=true;paused=false;
   for(const e of enemies){if(e.alive){e.hp=e.max;e.state="idle";e.g.position.set(e.home.x,groundH(e.home.x,e.home.z),e.home.z)}}}
@@ -1031,7 +1082,8 @@ function damageEnemy(e,dmg,dir){e.hp-=dmg;e.flash=0.12;sfx("hit");burst(e.g.posi
     scene.remove(e.g);if(Math.random()<0.6)spawnGem(e.g.position.x,e.g.position.z);
     if(e.camp&&enemies.every(x=>!x.camp||!x.alive)){done.camp=true;renderObj();barrierOn=false;sfx("open");setTimeout(()=>{toast("El campamento está libre","La niebla del templo se disipa");say("¡Lo lograste! La niebla del templo se fue. El templo está al norte, bajo la cascada.",6)},600)}}
   else {e.state="stun";e.t=e.kind==="brute"?0.18:0.35;const k=e.kind==="brute"?3:dmg>1.2?11:7;e.vx=dir.x*k;e.vz=dir.z*k}}
-function moveVec(){let ix=0,iz=0;if(keys.w||keys.arrowup)iz+=1;if(keys.s||keys.arrowdown)iz-=1;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(isTouch&&stick.id!==null){ix+=stick.x;iz-=stick.y}
+function moveVec(){if(P.moveTarget&&isTouch&&stick.id===null&&!P.block){const t=P.moveTarget;const dx=t.x-P.pos.x,dz=t.z-P.pos.z,d=Math.hypot(dx,dz);if(d<0.01)return new THREE.Vector3();let ux=dx/d,uz=dz/d;if(t.detourT>0){const c=Math.cos(t.detour),sn=Math.sin(t.detour);const nx=ux*c-uz*sn,nz=ux*sn+uz*c;ux=nx;uz=nz}return new THREE.Vector3(ux,0,uz).multiplyScalar(d>6?1:Math.max(0.55,d/6))}
+  let ix=0,iz=0;if(keys.w||keys.arrowup)iz+=1;if(keys.s||keys.arrowdown)iz-=1;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;if(isTouch&&stick.id!==null){ix+=stick.x;iz-=stick.y}
   const fx=-Math.sin(cam.yaw),fz=-Math.cos(cam.yaw),rx=Math.cos(cam.yaw),rz=-Math.sin(cam.yaw);const v=new THREE.Vector3(fx*iz+rx*ix,0,fz*iz+rz*ix);if(v.length()>1)v.normalize();return v}
 
 // =====================================================================
@@ -1067,6 +1119,7 @@ function update(dt){
     resolve(P.pos,0.45);P.vy-=26*dt;P.pos.y+=P.vy*dt;const gh=groundH(P.pos.x,P.pos.z),floor=inWater?Math.max(gh,WATER-1.1):gh;
     if(P.pos.y<=floor){if(!P.ground&&P.vy<-8)burst(P.pos.clone(),"#c9b27f",6,2,1,0.4);P.pos.y=floor;P.vy=0;P.ground=true}else if(P.pos.y>floor+0.3)P.ground=false;
     if(inWater&&Math.random()<Math.hypot(vx,vz)*0.02)burst(P.pos.clone().setY(WATER+0.1),"#e8f8ff",2,1.2,1.5,0.5,0.8,1.3);
+    if(P.moveTarget){const t=P.moveTarget,d=Math.hypot(t.x-P.pos.x,t.z-P.pos.z);if(t.act&&t.act.when&&!t.act.when()){P.moveTarget=null}else if(d<=t.stop||(t.act&&d<t.act.r-0.3)){P.moveTarget=null;tapMark.visible=false;if(t.act)t.act.act()}else{t.detourT=Math.max(0,(t.detourT||0)-dt);if(d<t.best-0.1){t.best=d;t.stuck=0}else t.stuck+=dt;if(t.stuck>0.3&&t.detourT<=0){t.tries=(t.tries||0)+1;t.sign=-(t.sign||-1);t.detour=t.sign*(0.9+Math.min(t.tries,4)*0.15);t.detourT=0.65;t.stuck=0;if(t.tries>7){P.moveTarget=null;tapMark.visible=false}}}}
     P.inv=Math.max(0,P.inv-dt);P.comboT=Math.max(0,P.comboT-dt);P.blockT+=dt;P.blockAmt=lerp(P.blockAmt,P.block?1:0,Math.min(1,dt*16));
     if(P.atk>0){const total=P.combo===2?0.42:0.3;P.atk-=dt;const ph=1-P.atk/total;if(!P.hitDone&&ph>0.35){P.hitDone=true;const f=new THREE.Vector3(Math.sin(P.model.rotation.y),0,Math.cos(P.model.rotation.y)),reach=P.combo===2?3.0:2.6;
       burst(P.pos.clone().add(f.clone().multiplyScalar(1.2)).setY(P.pos.y+1.1),"#ffe3a0",5,2.5,1,0.25,0.7,2.5);
@@ -1110,7 +1163,9 @@ function update(dt){
   {const pp=pollen.geometry.attributes.position;for(let i=0;i<pp.count;i++){let x=pp.getX(i),y=pp.getY(i),z=pp.getZ(i);x+=Math.sin(tAcc*0.5+i)*dt*0.4;y+=Math.sin(tAcc*0.8+i*1.3)*dt*0.25;z+=Math.cos(tAcc*0.4+i)*dt*0.4;
     if(x<-30)x+=60;if(x>30)x-=60;if(z<-30)z+=60;if(z>30)z-=60;pp.setXYZ(i,x,y,z)}pp.needsUpdate=true;pollen.position.set(Math.round(P.pos.x/60)*60,groundH(P.pos.x,P.pos.z),Math.round(P.pos.z/60)*60)}
   const tg=objTarget();if(tg){beacon.position.set(tg.x,groundH(tg.x,tg.z)+22,tg.z);beacon.material.opacity=0.16+Math.sin(tAcc*3)*0.06;beacon.visible=Math.hypot(tg.x-P.pos.x,tg.z-P.pos.z)>8}else beacon.visible=false;
-  const it=(!dlg&&!P.dead)?nearInteract():null,pr=$("prompt");if(it){pr.hidden=false;pr.innerHTML=`<kbd>${isTouch?"ACCIÓN":"F"}</kbd>${it.label}`}else pr.hidden=true;
+  const it=(!dlg&&!P.dead)?nearInteract():null,pr=$("prompt");if(it){pr.hidden=false;pr.innerHTML=isTouch?`Toca lo que brilla: ${it.label.toLowerCase()}`:`<kbd>F</kbd>${it.label}`}else pr.hidden=true;
+  if(it){const p=it.pos();const gy=groundH(p.x,p.z);hl.visible=true;hl.position.set(p.x,gy+0.07,p.z);const pul=0.5+0.5*Math.sin(tAcc*5);hl.userData.ring.scale.setScalar((it.hr||1)*(1+pul*0.08));hl.userData.ring.material.opacity=0.45+pul*0.45;hl.userData.gem.position.y=(it.h||1.2)+1.1+Math.sin(tAcc*3)*0.12;hl.userData.gem.rotation.y+=dt*2;hl.userData.glow.intensity=1.2+pul*0.8}else{hl.visible=false}
+  if(tapMark.visible){tapMark.userData.t+=dt;const k=tapMark.userData.t;tapMark.children[0].scale.setScalar(1+Math.sin(k*6)*0.08);tapMark.children[0].material.opacity=Math.max(0,1-k*0.25)}
   if(toastT>0){toastT-=dt;if(toastT<=0)$("toast").classList.remove("on")}if(kuiT>0){kuiT-=dt;if(kuiT<=0)$("kui").classList.remove("on")}
   hurtT=Math.max(0,hurtT-dt*3);finalPass.uniforms.hurt.value=hurtT;finalPass.uniforms.rewind.value=lerp(finalPass.uniforms.rewind.value,rewinding?1:0,dt*8);finalPass.uniforms.time.value=tAcc;
   const target=P.pos.clone();target.y+=1.55;lookAt.lerp(target,Math.min(1,dt*10));
@@ -1204,12 +1259,12 @@ $("pAyra").onclick=()=>pick("ayra");$("pTairo").onclick=()=>pick("tairo");
 function startGame(){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(_){AC=null}
   started=true;paused=false;$("title").hidden=true;P.model=buildHero(CHAR[choice]);scene.add(P.model);scene.add(P.model.userData.shadow);P.pos.y=groundH(P.pos.x,P.pos.z);P.model.rotation.y=Math.PI;
   kui.position.copy(P.pos).add(new THREE.Vector3(1,2,0));setupInteractables();renderObj();
-  ["stats","obj","keys"].forEach(id=>$(id).hidden=false);if(isTouch){$("touch").hidden=false;$("keys").hidden=true}else $("lockhint").hidden=false;
+  ["stats","obj","keys"].forEach(id=>$(id).hidden=false);if(isTouch){$("touch").hidden=false;$("keys").hidden=true;document.body.classList.add("touch");const th=$("touchHelp");th.hidden=false;setTimeout(()=>{th.style.opacity=0;setTimeout(()=>th.hidden=true,700)},9000)}else $("lockhint").hidden=false;
   lookAt.copy(P.pos);cam.yaw=Math.PI*0.08;startTime=performance.now();
   tryLoadModel(`models/${choice}.glb`,attachGLB);
   setTimeout(()=>say(`Hola, ${CHAR[choice].name}. Soy Kuí, vivo en tu amuleto. Toruma te busca, ¡sigue la luz dorada!`,6),700);setTimeout(()=>toast("Valle de Ammá","Pueblo de los Talladores"),300)}
 $("play").onclick=startGame;$("retry").onclick=respawn;$("keep").onclick=()=>{$("end").hidden=true;paused=false;ended=false};
 // gancho de pruebas (no afecta el juego)
-window.__gdp={start:c=>{pick(c);startGame()},tp:(x,z,yaw,pitch,dist)=>{P.pos.set(x,groundH(x,z),z);lookAt.copy(P.pos);if(yaw!==undefined)cam.yaw=yaw;if(pitch!==undefined)cam.pitch=pitch;if(dist!==undefined)cam.dist=dist},block:v=>setBlock(v),sim:sec=>{for(let t=0;t<sec;t+=0.05)update(0.05)},state:()=>({hp:P.hp,block:P.block,amt:P.blockAmt,e:enemies[0].state,cd:+enemies[0].cd.toFixed(2),alive:enemies[0].alive,d:+enemies[0].g.position.distanceTo(P.pos).toFixed(2),fz:frozen,paused,dlg:!!dlg,inv:P.inv}),freeze:v=>{frozen=v},enemy:(i,x,z,ry,st)=>{const e=enemies[i];e.home={x,z};e.g.position.set(x,groundH(x,z),z);e.g.rotation.y=ry;if(st){e.state=st;e.t=9}},face:y=>{P.model.rotation.y=y},hud:v=>document.querySelectorAll(".hud,#touch").forEach(e=>e.style.visibility=v?"":"hidden")};
+window.__gdp={start:c=>{pick(c);startGame()},tp:(x,z,yaw,pitch,dist)=>{P.pos.set(x,groundH(x,z),z);lookAt.copy(P.pos);if(yaw!==undefined)cam.yaw=yaw;if(pitch!==undefined)cam.pitch=pitch;if(dist!==undefined)cam.dist=dist},block:v=>setBlock(v),sim:sec=>{for(let t=0;t<sec;t+=0.05)update(0.05)},tap:(x,y,ws)=>onTap(x,y,ws),swipe:(dx,dy)=>swipeRoll(dx,dy),scr:(x,y,z)=>screenOf(new THREE.Vector3(x,y,z)),state:()=>({mt:P.moveTarget?[+P.moveTarget.x.toFixed(1),+P.moveTarget.z.toFixed(1)]:null,px:+P.pos.x.toFixed(1),pz:+P.pos.z.toFixed(1),roll:+P.roll.toFixed(2),vy:+P.vy.toFixed(1),dname:dlg?dlg.name:null,hp:P.hp,block:P.block,amt:P.blockAmt,e:enemies[0].state,cd:+enemies[0].cd.toFixed(2),alive:enemies[0].alive,d:+enemies[0].g.position.distanceTo(P.pos).toFixed(2),fz:frozen,paused,dlg:!!dlg,inv:P.inv}),freeze:v=>{frozen=v},enemy:(i,x,z,ry,st)=>{const e=enemies[i];e.home={x,z};e.g.position.set(x,groundH(x,z),z);e.g.rotation.y=ry;if(st){e.state=st;e.t=9}},face:y=>{P.model.rotation.y=y},hud:v=>document.querySelectorAll(".hud,#touch").forEach(e=>e.style.visibility=v?"":"hidden")};
 })();
 </script>
