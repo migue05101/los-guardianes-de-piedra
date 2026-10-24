@@ -44,9 +44,15 @@ python3 -m http.server 8000
 | Cubrirse con el escudo (mantener) | Clic derecho / Q | ESCUDO |
 | Saltar | Espacio | SALTAR |
 | Rodar | C | RODAR |
-| Retroceso del Eco | E | ECO |
+| Retroceso del Eco | E | Tocar la barra del Eco |
+| Honda (apunta con la cámara) | R | Tocar un objetivo lejano |
 | Interactuar | F | ACCIÓN |
 | Pista de Kuí | H | KUÍ |
+
+## Misiones
+
+1. **Bosque de las Estatuas:** habla con Toruma, libera el campamento y abre el templo. El mural está desgastado: la solución está escondida en piedras talladas alrededor del claro (hay una piedra señuelo), y el Eco usado frente al mural lo muestra como era. La solución cambia en cada partida. Premio: **Honda de piedra**.
+2. **Las Cascadas:** al este, cruzando el río, golpea con la honda el ojo de piedra para bajar el puente sobre el cañón. Habla con Tumi, libera la represa de los Sombríos y seca las cuatro cascadas pequeñas con las compuertas (cada una mueve varias a la vez; una solo se alcanza con la honda). Cuando el lago baja, entra al templo detrás de la gran cascada. Premio: **Vasija de Mareas**.
 
 ## Modelos 3D propios
 
