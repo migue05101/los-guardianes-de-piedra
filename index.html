@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#16120e">
 <title>Los Guardianes de Piedra</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -93,6 +99,8 @@ body.touch #obj li:not(.now){display:none}
 @media (max-width:700px){ .keys{display:none} }
 @media (prefers-reduced-motion:reduce){ #toast,#kui{transition:none} }
 </style>
+</head>
+<body>
 
 <canvas id="game" aria-label="Valle de Ammá, prototipo jugable"></canvas>
 
@@ -1490,3 +1498,5 @@ $("play").onclick=startGame;$("retry").onclick=respawn;$("keep").onclick=()=>{$(
 window.__gdp={start:c=>{pick(c);startGame()},tp:(x,z,yaw,pitch,dist)=>{P.pos.set(x,groundH(x,z),z);lookAt.copy(P.pos);if(yaw!==undefined)cam.yaw=yaw;if(pitch!==undefined)cam.pitch=pitch;if(dist!==undefined)cam.dist=dist},block:v=>setBlock(v),chest1:()=>openChest(),chest2:()=>openChest2(),cam:(...a)=>{camOv=a.length?a:null},ghost:()=>{ghostT=7},y:()=>+P.pos.y.toFixed(2),th:(x,z)=>+groundH(x,z).toFixed(2),mission:m=>{if(m==="cascadas")startCascadas();renderObj()},flag:(k,v)=>{done[k]=v;renderObj()},gate:i=>toggleGate(i),slingAt:i=>{const t=slingTargets[i];return slingAt(t.pos,t.hit)},clear:id=>campCleared(id),r2:()=>({lake:+lakeLevel.toFixed(2),flow:streamFlow.join(""),down:draw.down,ang:+draw.ang.toFixed(2),obj:(curObj()||{}).id,mission,sol:SOLUTION,decoy:DECOY,stones:glyphStones.map(s=>[s.x,s.z,s.sym,s.dots]),hp:P.hp,safe:P.safe&&[+P.safe.x.toFixed(1),+P.safe.z.toFixed(1)]}),sim:sec=>{for(let t=0;t<sec;t+=0.05)update(0.05)},tap:(x,y,ws)=>onTap(x,y,ws),swipe:(dx,dy)=>swipeRoll(dx,dy),scr:(x,y,z)=>screenOf(new THREE.Vector3(x,y,z)),state:()=>({mt:P.moveTarget?[+P.moveTarget.x.toFixed(1),+P.moveTarget.z.toFixed(1)]:null,px:+P.pos.x.toFixed(1),pz:+P.pos.z.toFixed(1),roll:+P.roll.toFixed(2),vy:+P.vy.toFixed(1),dname:dlg?dlg.name:null,hp:P.hp,block:P.block,amt:P.blockAmt,e:enemies[0].state,cd:+enemies[0].cd.toFixed(2),alive:enemies[0].alive,d:+enemies[0].g.position.distanceTo(P.pos).toFixed(2),fz:frozen,paused,dlg:!!dlg,inv:P.inv}),freeze:v=>{frozen=v},enemy:(i,x,z,ry,st)=>{const e=enemies[i];e.home={x,z};e.g.position.set(x,groundH(x,z),z);e.g.rotation.y=ry;if(st){e.state=st;e.t=9}},face:y=>{P.model.rotation.y=y},hud:v=>document.querySelectorAll(".hud,#touch").forEach(e=>e.style.visibility=v?"":"hidden")};
 })();
 </script>
+</body>
+</html>
