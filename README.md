@@ -1,5 +1,9 @@
 # Los Guardianes de Piedra
 
+## ▶ [JUGAR AHORA](https://migue05101.github.io/los-guardianes-de-piedra/)
+
+Ábrelo en el navegador (Chrome o Safari), en computador o celular: **https://migue05101.github.io/los-guardianes-de-piedra/**
+
 Aventura 3D de acción y acertijos en mundo abierto, ambientada en el **Valle de Ammá**, un mundo precolombino de fantasía inspirado en la cultura agustiniana del Alto Magdalena (Huila, Colombia). Título provisional.
 
 ## Prototipo jugable
