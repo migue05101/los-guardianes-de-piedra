@@ -79,6 +79,9 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(-
 .stat b{font-family:var(--display);font-size:26px;color:#3b2410;letter-spacing:0;text-transform:none}
 #touch{position:fixed;inset:0;z-index:6;pointer-events:none}
 #stick{position:absolute;left:calc(26px + env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));width:120px;height:120px;border-radius:50%;background:#16120e80;border:2px solid #d3a54a66;pointer-events:auto}
+#touch,#touch *,#stick,#tbtns,#ecoTap,#kui,#dialog{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body.touch{touch-action:none;overscroll-behavior:none}
+#stick{opacity:.55;transition:opacity .15s}#stick.live{opacity:1;transition:none}
 #stick i{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:#efe3c8cc}
 #tbtns{position:absolute;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));display:flex;align-items:flex-end;gap:14px;pointer-events:auto}
 #tbtns button{all:unset;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:70px;height:70px;border-radius:50%;background:#16120ecc;border:2px solid var(--gold-dim);color:var(--parch);font-size:10.5px;font-weight:700;letter-spacing:.06em;touch-action:none;-webkit-user-select:none;user-select:none}
@@ -120,7 +123,7 @@ body.touch #obj li:not(.now){display:none}
   <span><kbd>Clic der. / Q</kbd>Escudo</span><span><kbd>R</kbd>Honda</span><span><kbd>F</kbd>Interactuar</span>
   <span><kbd>H</kbd>Pista de Kuí</span>
 </div>
-<div class="hud" id="touchHelp" hidden><b>Controles táctiles</b><br>Joystick: moverte · Toca el suelo: caminar hasta allá<br>Toca la pantalla mientras usas el joystick: saltar<br>Desliza el dedo: rodar hacia ese lado · Arrastra: mover la cámara<br>Toca lo que brilla: interactuar · Toca la barra del Eco: retroceder el tiempo · Toca a Kuí: pista<br>Con la honda: toca un objetivo lejano</div>
+<div class="hud" id="touchHelp" hidden><b>Controles táctiles</b><br>Arrastra el dedo en la mitad izquierda: moverte (el joystick aparece bajo tu dedo)<br>Toca el suelo: caminar hasta allá · Toca a tu personaje: detenerte<br>Toca la pantalla mientras te mueves: saltar<br>Mitad derecha: desliza rápido para rodar · arrastra para mover la cámara<br>Toca lo que brilla: interactuar · Toca la barra del Eco: retroceder el tiempo · Toca a Kuí: pista<br>Con la honda: toca un objetivo lejano</div>
 <div class="hud" id="lockhint" hidden>Haz clic para mover la cámara con el ratón</div>
 <div class="hud" id="loading">CARGANDO EL VALLE…</div>
 <div class="hud" id="dialog" hidden><h4 id="dName"></h4><p id="dText"></p><div class="next">F, Espacio o clic para continuar</div></div>
@@ -1001,7 +1004,7 @@ function renderHUD(){if(P.hp!==lastHP){lastHP=P.hp;let h="";for(let i=0;i<P.max;
 let toastT=0;function toast(t,s=""){const el=$("toast");el.innerHTML=t+(s?`<small>${s}</small>`:"");el.classList.add("on");toastT=3.2}
 let kuiT=0;function say(t,d=5){$("kuiTxt").textContent=t;$("kui").classList.add("on");kuiT=d;sfx("chirp")}
 let dlg=null;
-function openDialog(name,lines,after){dlg={name,lines,i:0,after};$("dialog").hidden=false;showLine()}
+function openDialog(name,lines,after){dlg={name,lines,i:0,after};resetStick();P.moveTarget=null;tapMark.visible=false;$("dialog").hidden=false;showLine()}
 function showLine(){$("dName").textContent=dlg.name;$("dText").textContent=dlg.lines[dlg.i]}
 function advance(){if(!dlg)return;dlg.i++;sfx("tick");if(dlg.i>=dlg.lines.length){const a=dlg.after;dlg=null;$("dialog").hidden=true;a&&a()}else showLine()}
 
@@ -1038,11 +1041,19 @@ addEventListener("mousemove",e=>{if(paused)return;if(locked||mouseDown){cam.yaw-
 canvas.addEventListener("wheel",e=>{cam.dist=clamp(cam.dist+e.deltaY*0.008,3.2,14);e.preventDefault()},{passive:false});
 canvas.addEventListener("contextmenu",e=>e.preventDefault());
 document.addEventListener("pointerlockchange",()=>{locked=document.pointerLockElement===canvas;$("lockhint").hidden=locked||isTouch||paused});
-const stick={id:null,x:0,y:0,cx:0,cy:0};let camTouch=null;
+const stick={id:null,x:0,y:0,cx:0,cy:0,t:0};let camTouch=null;
+function resetStick(){stick.id=null;stick.x=stick.y=0;const st=$("stick");if(st){st.classList.remove("live");st.style.left=st.style.top=st.style.bottom="";const k=st.querySelector("i");if(k)k.style.transform=""}}
 if(isTouch){const st=$("stick"),knob=st.querySelector("i");
-  const moveStick=e=>{let dx=e.clientX-stick.cx,dy=e.clientY-stick.cy;const d=Math.hypot(dx,dy),m=45;if(d>m){dx*=m/d;dy*=m/d}stick.x=dx/m;stick.y=dy/m;knob.style.transform=`translate(${dx}px,${dy}px)`};
-  st.addEventListener("pointerdown",e=>{if(paused)return;stick.id=e.pointerId;const r=st.getBoundingClientRect();stick.cx=r.left+r.width/2;stick.cy=r.top+r.height/2;st.setPointerCapture(e.pointerId);moveStick(e);P.moveTarget=null});
-  st.addEventListener("pointermove",e=>{if(e.pointerId===stick.id)moveStick(e)});const endStick=e=>{if(e.pointerId!==stick.id)return;stick.id=null;stick.x=stick.y=0;knob.style.transform=""};st.addEventListener("pointerup",endStick);st.addEventListener("pointercancel",endStick);
+  const moveStick=(x,y)=>{let dx=x-stick.cx,dy=y-stick.cy;const d=Math.hypot(dx,dy),m=48;if(d>m){dx*=m/d;dy*=m/d}const dz=Math.min(1,Math.max(0,(Math.hypot(dx,dy)-6)/(m-6)));const l=Math.hypot(dx,dy)||1;stick.x=dx/l*dz;stick.y=dy/l*dz;stick.t=performance.now();knob.style.transform=`translate(${dx}px,${dy}px)`};
+  // joystick flotante: aparece donde se pone el dedo
+  const beginStick=(id,x,y)=>{stick.id=id;stick.cx=x;stick.cy=y;stick.t=performance.now();st.classList.add("live");st.style.left=(x-60)+"px";st.style.top=(y-60)+"px";st.style.bottom="auto";moveStick(x,y);P.moveTarget=null;tapMark.visible=false};
+  st.addEventListener("pointerdown",e=>{if(paused||dlg)return;e.preventDefault();e.stopPropagation();const r=st.getBoundingClientRect();beginStick(e.pointerId,r.left+r.width/2,r.top+r.height/2);moveStick(e.clientX,e.clientY)});
+  // se escucha en toda la ventana: así nunca se pierde el soltar el dedo
+  addEventListener("pointermove",e=>{if(e.pointerId!==stick.id)return;if(e.pointerType!=="mouse"&&e.buttons===0&&e.pressure===0){resetStick();return}moveStick(e.clientX,e.clientY)},{passive:true});
+  const endStick=e=>{if(e.pointerId===stick.id)resetStick()};addEventListener("pointerup",endStick);addEventListener("pointercancel",endStick);
+  // red de seguridad: si no queda ningún dedo en la pantalla, nada puede seguir presionado
+  addEventListener("touchend",e=>{if(e.touches.length===0){resetStick();gest.clear()}},{passive:true});addEventListener("touchcancel",e=>{if(e.touches.length===0){resetStick();gest.clear()}},{passive:true});
+  addEventListener("blur",()=>{resetStick();gest.clear()});document.addEventListener("visibilitychange",()=>{if(document.hidden){resetStick();gest.clear()}});
   // solo dos botones: atacar y escudo (mantener)
   $("tbtns").addEventListener("pointerdown",e=>{const b=e.target.closest("button");if(!b||paused)return;e.preventDefault();const k=b.dataset.k;
     if(k==="block"){setBlock(true);b.classList.add("on");const up=ev=>{if(ev.pointerId!==e.pointerId)return;setBlock(false);b.classList.remove("on");removeEventListener("pointerup",up);removeEventListener("pointercancel",up)};addEventListener("pointerup",up);addEventListener("pointercancel",up);return}
@@ -1051,14 +1062,16 @@ if(isTouch){const st=$("stick"),knob=st.querySelector("i");
   $("ecoTap").addEventListener("pointerdown",e=>{e.preventDefault();e.stopPropagation();if(!paused&&!dlg)startRewind()});
   $("kui").addEventListener("pointerdown",e=>{e.preventDefault();if(!paused&&!dlg)hint()});
   $("dialog").addEventListener("pointerdown",e=>{e.preventDefault();advance()});
-  // gestos sobre la pantalla: tocar, deslizar y arrastrar
+  // gestos: mitad izquierda arrastrar = joystick; mitad derecha arrastrar = cámara; tocar = ir/usar; deslizar rápido (derecha) = rodar
   const gest=new Map();
-  canvas.addEventListener("pointerdown",e=>{if(paused)return;if(dlg){advance();return}gest.set(e.pointerId,{x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:performance.now(),yaw0:cam.yaw,pitch0:cam.pitch,moved:0,withStick:stick.id!==null})});
+  canvas.addEventListener("pointerdown",e=>{if(paused)return;if(dlg){advance();return}const r=canvas.getBoundingClientRect();const left=e.clientX-r.left<r.width*0.45&&e.clientY-r.top>r.height*0.28&&stick.id===null;
+    gest.set(e.pointerId,{x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t0:performance.now(),yaw0:cam.yaw,pitch0:cam.pitch,moved:0,withStick:stick.id!==null,left})});
   canvas.addEventListener("pointermove",e=>{const g=gest.get(e.pointerId);if(!g)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;g.moved=Math.max(g.moved,Math.hypot(e.clientX-g.x0,e.clientY-g.y0));
-    if(g.moved>14){cam.yaw-=dx*0.006;cam.pitch=clamp(cam.pitch+dy*0.005,-0.15,1.15)}g.x=e.clientX;g.y=e.clientY});
+    if(g.left&&g.moved>12&&stick.id===null&&!paused&&!dlg){gest.delete(e.pointerId);beginStick(e.pointerId,g.x0,g.y0);moveStick(e.clientX,e.clientY);return}
+    if(!g.left&&g.moved>14){cam.yaw-=dx*0.006;cam.pitch=clamp(cam.pitch+dy*0.005,-0.15,1.15)}g.x=e.clientX;g.y=e.clientY});
   const endG=e=>{const g=gest.get(e.pointerId);if(!g)return;gest.delete(e.pointerId);if(paused||dlg)return;
     const dt=performance.now()-g.t0,dx=e.clientX-g.x0,dy=e.clientY-g.y0,dist=Math.hypot(dx,dy);
-    if(dist>45&&dt<320){cam.yaw=g.yaw0;cam.pitch=g.pitch0;swipeRoll(dx,dy);return}
+    if(!g.left&&dist>45&&dt<320){cam.yaw=g.yaw0;cam.pitch=g.pitch0;swipeRoll(dx,dy);return}
     if(dist<16&&dt<380)onTap(e.clientX,e.clientY,g.withStick||stick.id!==null)};
   canvas.addEventListener("pointerup",endG);canvas.addEventListener("pointercancel",e=>gest.delete(e.pointerId))}
 function screenOf(v){const p=v.clone().project(camera);if(p.z>1)return null;const r=canvas.getBoundingClientRect();return{x:(p.x*0.5+0.5)*r.width+r.left,y:(-p.y*0.5+0.5)*r.height+r.top}}
@@ -1066,6 +1079,8 @@ function groundAtScreen(sx,sy){const r=canvas.getBoundingClientRect();const ndc=
   const o=ray.ray.origin,d=ray.ray.direction;let prev=0;for(let t=0.5;t<140;t+=0.4){const x=o.x+d.x*t,y=o.y+d.y*t,z=o.z+d.z*t;if(y<=groundH(x,z)){let a=prev,b=t;for(let k=0;k<8;k++){const m=(a+b)/2;const yy=o.y+d.y*m;if(yy<=groundH(o.x+d.x*m,o.z+d.z*m))b=m;else a=m}return new THREE.Vector3(o.x+d.x*b,0,o.z+d.z*b)}prev=t}return null}
 function swipeRoll(dx,dy){const fx=-Math.sin(cam.yaw),fz=-Math.cos(cam.yaw),rx=Math.cos(cam.yaw),rz=-Math.sin(cam.yaw);const l=Math.hypot(dx,dy)||1;const v=new THREE.Vector3(fx*(-dy/l)+rx*(dx/l),0,fz*(-dy/l)+rz*(dx/l));P.moveTarget=null;roll(v)}
 function onTap(sx,sy,withStick){
+  // 0) tocar al propio personaje lo detiene
+  if(P.moveTarget){const me=screenOf(P.pos.clone().setY(P.pos.y+1));if(me&&Math.hypot(me.x-sx,me.y-sy)<55){P.moveTarget=null;tapMark.visible=false;return}}
   // 1) tocar a Kuí da una pista
   if(kui){const k=screenOf(kui.position);if(k&&Math.hypot(k.x-sx,k.y-sy)<46){hint();return}}
   // 2) tocar un objeto o persona interactiva
@@ -1082,7 +1097,7 @@ function onTap(sx,sy,withStick){
   setMoveTarget(gp)}
 const tapMark=(()=>{const g=new THREE.Group();const r=new THREE.Mesh(new THREE.RingGeometry(0.45,0.62,32),new THREE.MeshBasicMaterial({color:L("#ffd36b").multiplyScalar(2.5),transparent:true,depthWrite:false,side:THREE.DoubleSide}));r.rotation.x=-Math.PI/2;g.add(r);
   const r2=new THREE.Mesh(new THREE.RingGeometry(0.12,0.2,24),r.material);r2.rotation.x=-Math.PI/2;g.add(r2);g.visible=false;scene.add(g);g.userData.t=0;return g})();
-function setMoveTarget(v,act,stop){P.moveTarget={x:v.x,z:v.z,act:act||null,stop:stop||(act?Math.max(0.8,act.r-0.8):0.5),best:1e9,stuck:0};tapMark.position.set(v.x,groundH(v.x,v.z)+0.06,v.z);tapMark.visible=!act;tapMark.userData.t=0}
+function setMoveTarget(v,act,stop){const dd=Math.hypot(v.x-P.pos.x,v.z-P.pos.z);P.moveTarget={x:v.x,z:v.z,act:act||null,stop:stop||(act?Math.max(0.8,act.r-0.8):0.5),best:1e9,stuck:0,age:0,maxT:dd/3.2+2.5};tapMark.position.set(v.x,groundH(v.x,v.z)+0.06,v.z);tapMark.visible=!act;tapMark.userData.t=0}
 // brillo de lo que se puede tocar
 const hl=(()=>{const g=new THREE.Group();const ring=new THREE.Mesh(new THREE.RingGeometry(0.85,1.05,48),new THREE.MeshBasicMaterial({color:L("#ffe39a").multiplyScalar(3),transparent:true,opacity:0.8,depthWrite:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;g.add(ring);
   const gem=new THREE.Mesh(new THREE.OctahedronGeometry(0.18,0),new THREE.MeshBasicMaterial({color:L("#ffe39a").multiplyScalar(4)}));gem.scale.y=1.5;g.add(gem);
@@ -1194,7 +1209,7 @@ function update(dt){
     resolve(P.pos,0.45);if(deepAt(P.pos.x,P.pos.z)){if(!deepAt(P.pos.x,oz))P.pos.z=oz;else if(!deepAt(ox,P.pos.z))P.pos.x=ox;else{P.pos.x=ox;P.pos.z=oz}}P.vy-=26*dt;P.pos.y+=P.vy*dt;const gh=groundH(P.pos.x,P.pos.z),floor=inWater?Math.max(gh,WATER-1.1):gh;
     if(P.pos.y<=floor){if(!P.ground&&P.vy<-8)burst(P.pos.clone(),"#c9b27f",6,2,1,0.4);P.pos.y=floor;P.vy=0;P.ground=true}else if(P.pos.y>floor+0.3)P.ground=false;
     if(inWater&&Math.random()<Math.hypot(vx,vz)*0.02)burst(P.pos.clone().setY(WATER+0.1),"#e8f8ff",2,1.2,1.5,0.5,0.8,1.3);
-    if(P.moveTarget){const t=P.moveTarget,d=Math.hypot(t.x-P.pos.x,t.z-P.pos.z);if(t.act&&t.act.when&&!t.act.when()){P.moveTarget=null}else if(d<=t.stop||(t.act&&d<t.act.r-0.3)){P.moveTarget=null;tapMark.visible=false;if(t.act)t.act.act()}else{t.detourT=Math.max(0,(t.detourT||0)-dt);if(d<t.best-0.1){t.best=d;t.stuck=0}else t.stuck+=dt;if(t.stuck>0.3&&t.detourT<=0){t.tries=(t.tries||0)+1;t.sign=-(t.sign||-1);t.detour=t.sign*(0.9+Math.min(t.tries,4)*0.15);t.detourT=0.65;t.stuck=0;if(t.tries>7){P.moveTarget=null;tapMark.visible=false}}}}
+    if(P.moveTarget){const t=P.moveTarget,d=Math.hypot(t.x-P.pos.x,t.z-P.pos.z);if(t.act&&t.act.when&&!t.act.when()){P.moveTarget=null}else if(d<=t.stop||(t.act&&d<t.act.r-0.3)){P.moveTarget=null;tapMark.visible=false;if(t.act)t.act.act()}else if((t.age=(t.age||0)+dt)>t.maxT){P.moveTarget=null;tapMark.visible=false}else{t.detourT=Math.max(0,(t.detourT||0)-dt);if(d<t.best-0.1){t.best=d;t.stuck=0}else t.stuck+=dt;if(t.stuck>0.3&&t.detourT<=0){t.tries=(t.tries||0)+1;t.sign=-(t.sign||-1);t.detour=t.sign*(0.9+Math.min(t.tries,4)*0.15);t.detourT=0.65;t.stuck=0;if(t.tries>5){P.moveTarget=null;tapMark.visible=false}}}}
     P.inv=Math.max(0,P.inv-dt);P.comboT=Math.max(0,P.comboT-dt);P.blockT+=dt;P.blockAmt=lerp(P.blockAmt,P.block?1:0,Math.min(1,dt*16));
     if(P.atk>0){const total=P.combo===2?0.42:0.3;P.atk-=dt;const ph=1-P.atk/total;if(!P.hitDone&&ph>0.35){P.hitDone=true;const f=new THREE.Vector3(Math.sin(P.model.rotation.y),0,Math.cos(P.model.rotation.y)),reach=P.combo===2?3.0:2.6;
       burst(P.pos.clone().add(f.clone().multiplyScalar(1.2)).setY(P.pos.y+1.1),"#ffe3a0",5,2.5,1,0.25,0.7,2.5);
@@ -1495,7 +1510,7 @@ function startGame(){try{AC=new (window.AudioContext||window.webkitAudioContext)
   setTimeout(()=>say(`Hola, ${CHAR[choice].name}. Soy Kuí, vivo en tu amuleto. Toruma te busca, ¡sigue la luz dorada!`,6),700);setTimeout(()=>toast("Valle de Ammá","Pueblo de los Talladores"),300)}
 $("play").onclick=startGame;$("retry").onclick=respawn;$("keep").onclick=()=>{$("end").hidden=true;paused=false;ended=false;if(afterCard){const f=afterCard;afterCard=null;f()}};
 // gancho de pruebas (no afecta el juego)
-window.__gdp={start:c=>{pick(c);startGame()},tp:(x,z,yaw,pitch,dist)=>{P.pos.set(x,groundH(x,z),z);lookAt.copy(P.pos);if(yaw!==undefined)cam.yaw=yaw;if(pitch!==undefined)cam.pitch=pitch;if(dist!==undefined)cam.dist=dist},block:v=>setBlock(v),chest1:()=>openChest(),chest2:()=>openChest2(),cam:(...a)=>{camOv=a.length?a:null},ghost:()=>{ghostT=7},y:()=>+P.pos.y.toFixed(2),th:(x,z)=>+groundH(x,z).toFixed(2),mission:m=>{if(m==="cascadas")startCascadas();renderObj()},flag:(k,v)=>{done[k]=v;renderObj()},gate:i=>toggleGate(i),slingAt:i=>{const t=slingTargets[i];return slingAt(t.pos,t.hit)},clear:id=>campCleared(id),r2:()=>({lake:+lakeLevel.toFixed(2),flow:streamFlow.join(""),down:draw.down,ang:+draw.ang.toFixed(2),obj:(curObj()||{}).id,mission,sol:SOLUTION,decoy:DECOY,stones:glyphStones.map(s=>[s.x,s.z,s.sym,s.dots]),hp:P.hp,safe:P.safe&&[+P.safe.x.toFixed(1),+P.safe.z.toFixed(1)]}),sim:sec=>{for(let t=0;t<sec;t+=0.05)update(0.05)},tap:(x,y,ws)=>onTap(x,y,ws),swipe:(dx,dy)=>swipeRoll(dx,dy),scr:(x,y,z)=>screenOf(new THREE.Vector3(x,y,z)),state:()=>({mt:P.moveTarget?[+P.moveTarget.x.toFixed(1),+P.moveTarget.z.toFixed(1)]:null,px:+P.pos.x.toFixed(1),pz:+P.pos.z.toFixed(1),roll:+P.roll.toFixed(2),vy:+P.vy.toFixed(1),dname:dlg?dlg.name:null,hp:P.hp,block:P.block,amt:P.blockAmt,e:enemies[0].state,cd:+enemies[0].cd.toFixed(2),alive:enemies[0].alive,d:+enemies[0].g.position.distanceTo(P.pos).toFixed(2),fz:frozen,paused,dlg:!!dlg,inv:P.inv}),freeze:v=>{frozen=v},enemy:(i,x,z,ry,st)=>{const e=enemies[i];e.home={x,z};e.g.position.set(x,groundH(x,z),z);e.g.rotation.y=ry;if(st){e.state=st;e.t=9}},face:y=>{P.model.rotation.y=y},hud:v=>document.querySelectorAll(".hud,#touch").forEach(e=>e.style.visibility=v?"":"hidden")};
+window.__gdp={stk:()=>({id:stick.id,x:stick.x,y:stick.y}),me:()=>screenOf(P.pos.clone().setY(P.pos.y+1)),smt:(dx,dz,maxT)=>{setMoveTarget(new THREE.Vector3(P.pos.x+dx,0,P.pos.z+dz));if(maxT)P.moveTarget.maxT=maxT},yaw:()=>cam.yaw,start:c=>{pick(c);startGame()},tp:(x,z,yaw,pitch,dist)=>{P.pos.set(x,groundH(x,z),z);lookAt.copy(P.pos);if(yaw!==undefined)cam.yaw=yaw;if(pitch!==undefined)cam.pitch=pitch;if(dist!==undefined)cam.dist=dist},block:v=>setBlock(v),chest1:()=>openChest(),chest2:()=>openChest2(),cam:(...a)=>{camOv=a.length?a:null},ghost:()=>{ghostT=7},y:()=>+P.pos.y.toFixed(2),th:(x,z)=>+groundH(x,z).toFixed(2),mission:m=>{if(m==="cascadas")startCascadas();renderObj()},flag:(k,v)=>{done[k]=v;renderObj()},gate:i=>toggleGate(i),slingAt:i=>{const t=slingTargets[i];return slingAt(t.pos,t.hit)},clear:id=>campCleared(id),r2:()=>({lake:+lakeLevel.toFixed(2),flow:streamFlow.join(""),down:draw.down,ang:+draw.ang.toFixed(2),obj:(curObj()||{}).id,mission,sol:SOLUTION,decoy:DECOY,stones:glyphStones.map(s=>[s.x,s.z,s.sym,s.dots]),hp:P.hp,safe:P.safe&&[+P.safe.x.toFixed(1),+P.safe.z.toFixed(1)]}),sim:sec=>{for(let t=0;t<sec;t+=0.05)update(0.05)},tap:(x,y,ws)=>onTap(x,y,ws),swipe:(dx,dy)=>swipeRoll(dx,dy),scr:(x,y,z)=>screenOf(new THREE.Vector3(x,y,z)),state:()=>({mt:P.moveTarget?[+P.moveTarget.x.toFixed(1),+P.moveTarget.z.toFixed(1)]:null,px:+P.pos.x.toFixed(1),pz:+P.pos.z.toFixed(1),roll:+P.roll.toFixed(2),vy:+P.vy.toFixed(1),dname:dlg?dlg.name:null,hp:P.hp,block:P.block,amt:P.blockAmt,e:enemies[0].state,cd:+enemies[0].cd.toFixed(2),alive:enemies[0].alive,d:+enemies[0].g.position.distanceTo(P.pos).toFixed(2),fz:frozen,paused,dlg:!!dlg,inv:P.inv}),freeze:v=>{frozen=v},enemy:(i,x,z,ry,st)=>{const e=enemies[i];e.home={x,z};e.g.position.set(x,groundH(x,z),z);e.g.rotation.y=ry;if(st){e.state=st;e.t=9}},face:y=>{P.model.rotation.y=y},hud:v=>document.querySelectorAll(".hud,#touch").forEach(e=>e.style.visibility=v?"":"hidden")};
 })();
 </script>
 </body>
